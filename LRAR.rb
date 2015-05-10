@@ -9,6 +9,8 @@ element = driver.find_element(:id, 'masqueRechercheInit')
 element.send_keys "00000000000"
 element.submit
 
+driver.save_screenshot("./screen.png")
+
 sleep 5
 
 driver.quit
