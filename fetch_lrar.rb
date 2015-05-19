@@ -17,7 +17,7 @@ def fetch_lrar lrar, logger
     element.send_keys lrar
     element.submit
 
-    driver.save_screenshot("./#{lrar}-#{date}.png")
+    driver.save_screenshot("./#{lrar}/#{lrar}-#{date}.png")
 
     logger.debug("Screenshot saved to #{lrar}-#{date}.png")
 

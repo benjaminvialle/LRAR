@@ -91,13 +91,23 @@ if lrar.empty?
   rows = CSV.read(csv)
   logger.info(rows.inspect)
 
+  # Status :
+  #          0 -> to be fetched
+  #          1 -> deadline reached without having succeeded
+  #          2 -> error on website
+  #          3 -> lrar is delivered and screenshot proves it
   rows.each do |lrar, date|
+
+    # Creates a directory to save the screenshot
+    if not Dir.exist?(lrar)
+      Dir.mkdir(lrar)
+    end
     fetch_lrar(lrar, logger)
   end
 
 end
 
 if csv.empty?
-  logger.info("Reading lrar command line")
+  logger.info("Reading lrar from command line")
   fetch_lrar(lrar, logger)
 end
