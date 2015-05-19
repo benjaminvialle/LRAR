@@ -4,6 +4,8 @@
 #
 # (c) Benjamin Vialle, 2015.
 
+URL = "http://www.csuivi.courrier.laposte.fr/suivi"
+
 begin
   # in order to log
   require 'logger'
@@ -13,10 +15,14 @@ begin
   require "selenium-webdriver"
   # used for DateTime functions
   require 'time'
+  # used to parse CSV file
+  require 'csv'
 rescue LoadError => e
   puts "Required library not found: '#{e.message}'."
   exit(1)
 end
+
+require "./fetch_lrar.rb"
 
 opts = GetoptLong.new(
       [ '--help', '-h', GetoptLong::NO_ARGUMENT ],
@@ -25,7 +31,10 @@ opts = GetoptLong.new(
       [ '--debug', '-d', GetoptLong::NO_ARGUMENT ]
     )
 
-LOGLEVEL = 'INFO'
+loglevel = 'INFO'
+
+csv = ""
+lrar = ""
 
 opts.each do |opt, arg|
   case opt
@@ -41,6 +50,7 @@ opts.each do |opt, arg|
 
      -l, --lrar <LRAR>:
         reads LRAR number from CLI
+        if -f option is used, -l option is desactivated
 
      -d, --debug:
         debug level (INFO, WARN, DEBUG)
@@ -48,13 +58,12 @@ opts.each do |opt, arg|
     EOF
     exit (0)
   when '--file'
-    puts "Reading from file is not implemented yet."
-    exit (0)
+    csv = arg
   when '--lrar'
     #TODO: arg correctly formated
-    LRAR = arg
+    lrar = arg
   when '--debug'
-    LOGLEVEL = 'DEBUG'
+    loglevel = 'DEBUG'
   end
 end
 
@@ -63,57 +72,32 @@ if ARGV.length != 0
   exit 0
 end
 
-class LRARRecovery
+# Start Logging
+logger = Logger.new(STDOUT)
+# Set the log level here
+case loglevel
+when 'INFO'
+  logger.level = Logger::INFO
+when 'DEBUG'
+  logger.level = Logger::DEBUG
+when 'WARN'
+  logger.level = Logger::WARN
+end
 
-  # Start Logging
-  logger = Logger.new(STDOUT)
-  # Set the log level here
-  case LOGLEVEL
-  when 'INFO'
-    logger.level = Logger::INFO
-  when 'DEBUG'
-    logger.level = Logger::DEBUG
-  when 'WARN'
-    logger.level = Logger::WARN
-  end
-  logger.debug("Log level is set to #{LOGLEVEL}")
+logger.debug("Log level is set to #{loglevel}")
 
-  #LRAR = "2C09912810639"
-  d = DateTime.now
-  DATE = "#{d.year}-#{d.month}-#{d.day}_#{d.hour}h#{d.min}.#{d.sec}"
-  URL = "http://www.csuivi.courrier.laposte.fr/suivi"
+if lrar.empty?
+  logger.info("Reading lrar from CSV file")
+  rows = CSV.read(csv)
+  logger.info(rows.inspect)
 
-  logger.debug("LRAR=#{LRAR}")
-  logger.debug("DATE=#{DATE}")
-
-  driver = Selenium::WebDriver.for :firefox
-
-  begin
-
-    driver.navigate.to "http://www.csuivi.courrier.laposte.fr/suivi"
-    driver.manage.window.maximize
-
-    element = driver.find_element(:id, 'masqueRechercheInit')
-    element.send_keys LRAR
-    element.submit
-
-    driver.save_screenshot("./#{LRAR}-#{DATE}.png")
-
-    sleep 5
-
-    driver.quit
-
-    #if Firefox window is closed before end of script
-  rescue Errno::ECONNREFUSED => e
-    logger.fatal("Caught exception for element #{LRAR}; exiting")
-    logger.fatal(e.message)
-    exit(1)
-
-    #if website or div element is not available
-  rescue Selenium::WebDriver::Error::NoSuchElementError => e
-    logger.fatal("Caught exception for element #{LRAR}; exiting")
-    logger.fatal(e.message)
-    exit(1)
+  rows.each do |lrar, date|
+    fetch_lrar(lrar, logger)
   end
 
+end
+
+if csv.empty?
+  logger.info("Reading lrar command line")
+  fetch_lrar(lrar, logger)
 end
