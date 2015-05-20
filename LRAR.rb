@@ -22,7 +22,7 @@ rescue LoadError => e
   exit(1)
 end
 
-require "./fetch_lrar.rb"
+require File.expand_path("fetch_lrar.rb")
 
 opts = GetoptLong.new(
       [ '--help', '-h', GetoptLong::NO_ARGUMENT ],
