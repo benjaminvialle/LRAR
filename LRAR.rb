@@ -22,7 +22,7 @@ rescue LoadError => e
   exit(1)
 end
 
-require File.expand_path("fetch_lrar.rb")
+require_relative("fetch_lrar.rb")
 
 opts = GetoptLong.new(
       [ '--help', '-h', GetoptLong::NO_ARGUMENT ],
@@ -65,6 +65,7 @@ opts.each do |opt, arg|
   when '--debug'
     loglevel = 'DEBUG'
   end
+
 end
 
 if ARGV.length != 0
@@ -86,6 +87,13 @@ end
 
 logger.debug("Log level is set to #{loglevel}")
 
+
+if lrar.empty? and csv.empty?
+  puts "Please give -l argument or -f argument"
+  logger.info("Please give -l argument or -f argument")
+  exit(1)
+end
+
 if lrar.empty?
   logger.info("Reading lrar from CSV file")
   rows = CSV.read(csv)
@@ -99,11 +107,13 @@ if lrar.empty?
   rows.each do |lrar, date|
 
     # Creates a directory to save the screenshot
-    if not Dir.exist?(lrar)
-      Dir.mkdir(lrar)
+    if not Dir.exist?(File.dirname(__FILE__) + "/#{lrar}")
+      Dir.mkdir(File.dirname(__FILE__) + "/#{lrar}")
     end
     fetch_lrar(lrar, logger)
   end
+  
+  logger.info("Fin du traitement du fichier #{csv}")
 
 end
 
