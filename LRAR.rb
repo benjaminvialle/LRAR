@@ -44,9 +44,9 @@ opts.each do |opt, arg|
         show help
 
      -f, --file <file>:
-        NOT IMPLEMENTED YET
         reads LRAR numbers from text file
-        one LRAR number per line
+        one LRAR number per line,one date per line
+
 
      -l, --lrar <LRAR>:
         reads LRAR number from CLI
@@ -112,12 +112,16 @@ if lrar.empty?
     end
     fetch_lrar(lrar, logger)
   end
-  
-  logger.info("Fin du traitement du fichier #{csv}")
+
+  logger.info("End of file #{csv}")
 
 end
 
 if csv.empty?
   logger.info("Reading lrar from command line")
+  # Creates a directory to save the screenshot
+  if not Dir.exist?(File.dirname(__FILE__) + "/#{lrar}")
+    Dir.mkdir(File.dirname(__FILE__) + "/#{lrar}")
+  end
   fetch_lrar(lrar, logger)
 end

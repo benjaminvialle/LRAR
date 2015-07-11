@@ -16,32 +16,39 @@ def fetch_lrar lrar, logger
     element = driver.find_element(:id, 'masqueRechercheInit')
     element.send_keys lrar
     element.submit
-        
+
     driver.save_screenshot(File.dirname(__FILE__) + "/#{lrar}/#{lrar}-#{date}.png")
 
     logger.debug("Screenshot saved to" + File.dirname(__FILE__) + "/#{lrar}/#{lrar}-#{date}.png")
 
     driver.quit
 
-    #if Firefox window is closed before end of script
+  #if Firefox window is closed before end of script
   rescue Errno::ECONNREFUSED => e
     logger.fatal("Caught exception for element #{lrar}; exiting")
     logger.fatal(e.message)
 
-    #if website or div element is not available
+    driver.quit
+
+  #if website or div element is not available
   rescue Selenium::WebDriver::Error::NoSuchElementError => e
     logger.fatal("Caught exception for element #{lrar}; exiting")
     logger.fatal(e.message)
 
-    #if Firefox window is closed before end of script
+    driver.quit
+
+  #if Firefox window is closed before end of script
   rescue EOFError => e
     logger.fatal("Caught exception for element #{lrar}; exiting")
     logger.fatal(e.message)
 
-    #if website timeout
+    driver.quit
+
+  #if website timeout
   rescue Net::ReadTimeout => e
     logger.fatal("Caught exception for element #{lrar}; exiting")
     logger.fatal(e.message)
 
+    driver.quit
   end
 end
