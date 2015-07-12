@@ -95,10 +95,15 @@ if lrar.empty? and csv.empty?
 end
 
 if lrar.empty?
-  logger.info("Reading lrar from CSV file")
-  rows = CSV.read(csv)
-  logger.info(rows.inspect)
+  # some CSV file opened with Microsoft Excel contains ; instead of ,
+  logger.info("Replacing ';' by ',' in #{csv}")
+  text = File.read(csv)
+  new_contents = text.gsub(/;/, ",")
+  File.open("lrar_clean.csv", "w") {|file| file.puts new_contents }
 
+  logger.info("Reading lrar from CSV file")
+  rows = CSV.read("lrar_clean.csv")
+  logger.info(rows.inspect)
   # Status :
   #          0 -> to be fetched
   #          1 -> deadline reached without having succeeded
@@ -113,7 +118,9 @@ if lrar.empty?
     fetch_lrar(lrar, logger)
   end
 
-  logger.info("End of file #{csv}")
+  logger.info("End of file lrar_clean.csv")
+  logger.info("Removing lrar_clean.csv")
+  File.delete("lrar_clean.csv")
 
 end
 
